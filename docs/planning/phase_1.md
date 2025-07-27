@@ -67,7 +67,7 @@ expense_type classification:
 ```
 retirement-planning-v2/
 ├── src/
-│   └── retirement_planning/
+│   └── budgy/
 │       ├── __init__.py
 │       ├── core/                    # Core business logic (ported from budgy)
 │       │   ├── __init__.py         # OFX parsing functions
@@ -100,7 +100,7 @@ retirement-planning-v2/
 
 ### Key Design Decisions
 
-1. **Source structure mirrors budgy**: `src/retirement_planning/core/` matches budgy's proven layout
+1. **Source structure mirrors budgy**: `src/budgy/core/` matches budgy's proven layout
 2. **Phase-based organization**: Separate directories for web (Phase 2) and forecasting (Phase 3)
 3. **Testing structure**: Parallel test directory structure for comprehensive coverage
 4. **Configuration**: Modern Python packaging with `pyproject.toml`
