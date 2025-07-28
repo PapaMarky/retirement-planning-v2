@@ -1,0 +1,12 @@
+# Core budgy dependencies (from existing project)
+ofxtools>=0.9.4
+
+# Security dependencies for Phase 1
+sqlcipher3-binary>=0.5.2
+cryptography>=41.0.0
+argon2-cffi>=23.1.0
+keyring>=24.0.0
+
+# Development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
