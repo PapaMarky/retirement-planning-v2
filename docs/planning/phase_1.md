@@ -147,16 +147,20 @@ retirement-planning-v2/
 - **ofxtools**: OFX file parsing (proven stable)
 - **logging**: Comprehensive logging framework
 
-### New Dependencies
-- **sqlcipher3-binary**: Encrypted SQLite database (replaces sqlite3)
-- **cryptography**: OFX file encryption and key derivation
-- **keyring**: Secure password storage
-- **argon2-cffi**: Key derivation function
+### New Dependencies (Security is Mandatory)
+- **sqlcipher3-binary**: Encrypted SQLite database (replaces sqlite3) - REQUIRED
+- **cryptography**: OFX file encryption and key derivation - REQUIRED
+- **keyring**: Secure password storage - REQUIRED
+- **argon2-cffi**: Key derivation function - REQUIRED
 - Web framework (Flask/FastAPI/Django - decide based on requirements)
 - Testing framework (pytest to match budgy)
 - Linting/formatting tools
 
-## Enhanced Security Model **[TO DO]**
+**Note**: Security dependencies are mandatory. The application will fail to start if SQLCipher or encryption libraries are not available.
+
+## Enhanced Security Model **[COMPLETED]**
+
+**IMPORTANT**: All security features are mandatory. The application will fail to start if SQLCipher or encryption dependencies are not installed.
 
 ### Unified Encryption Strategy
 **Single Master Password** → **Key Derivation** → **Database Encryption** + **OFX File Encryption**
@@ -273,7 +277,7 @@ Database               File encryption
 
 ## Implementation Progress **[COMPLETED]**
 
-### Current Status: Phase 1 Foundation Complete (Steps 1-3)
+### Current Status: Phase 1 Foundation Complete (Steps 1-3 + Security)
 
 #### ✅ Step 1: Core Database Foundation - COMPLETE
 - **Database schema ported**: Successfully copied `database.py` from budgy v1
@@ -295,6 +299,13 @@ Database               File encryption
 - **Category assignment**: Individual transaction categorization working correctly
 - **Bulk categorization**: Pattern-based bulk operations verified with LIKE queries
 - **Category reporting**: Database provides complete category analysis capabilities
+
+#### ✅ Enhanced Security Model - COMPLETE
+- **Mandatory SQLCipher encryption**: Database layer requires SQLCipher, fails fast if unavailable
+- **Comprehensive SecurityManager**: Argon2id key derivation, master password management, keyring integration
+- **Automatic OFX file encryption**: ImporterApp encrypts OFX files after successful import and securely deletes originals
+- **Unified encryption strategy**: Single master password derives separate keys for database and file encryption
+- **Security dependencies enforced**: Application fails to start if any security libraries are missing
 
 ### Key Findings and Decisions
 
@@ -320,9 +331,11 @@ All core functionality verified through comprehensive testing:
 ```
 src/budgy/core/
 ├── __init__.py         # OFX parsing functionality (load_ofx_file)
-├── database.py         # Complete database layer (copied from budgy v1)
-├── importer.py         # Import application logic (copied from budgy v1)  
+├── database.py         # Database layer with mandatory SQLCipher encryption
+├── importer.py         # Import application with automatic OFX file encryption
+├── security.py         # Security module with key derivation and file encryption
 └── app.py              # Base application framework (copied from budgy v1)
+requirements.txt        # Security dependencies (SQLCipher, cryptography, etc.)
 ```
 
 ### Next Steps for Phase 2
