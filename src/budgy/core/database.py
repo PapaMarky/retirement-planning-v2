@@ -1,7 +1,16 @@
 import datetime
 import logging
-import sqlite3
-from typing import List, Dict
+from pathlib import Path
+from typing import List, Dict, Optional
+
+# SQLCipher is required for security - fail if not available
+try:
+    import sqlcipher3
+except ImportError:
+    raise ImportError(
+        "SQLCipher is required but not installed. "
+        "Install with: pip install sqlcipher3-binary"
+    )
 class BudgyDatabase(object):
     TXN_TABLE_NAME = 'transactions'
     CATEGORY_TABLE_NAME = 'categories'
@@ -12,8 +21,18 @@ class BudgyDatabase(object):
     ONE_TIME_EXPENSE_TYPE = 1
     RECURRING_EXPENSE_TYPE = 2
     connection = None
-    def __init__(self, path):
-        self.db_path = path
+    
+    def __init__(self, path, encryption_key: Optional[str] = None):
+        """
+        Initialize encrypted database.
+        
+        Args:
+            path: Path to database file
+            encryption_key: Hex-encoded encryption key for SQLCipher
+                          If None, will prompt for master password
+        """
+        self.db_path = Path(path)
+        self.encryption_key = encryption_key
         self._open_database()
     def table_exists(self, table_name):
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=?;"
@@ -178,9 +197,33 @@ class BudgyDatabase(object):
         else:
             return cursor.execute(sql)
     def _open_database(self):
-        logging.debug(f'Opening {self.db_path}')
+        """Open encrypted database using SQLCipher"""
+        logging.debug(f'Opening encrypted database: {self.db_path}')
+        
         if self.connection is None:
-            self.connection = sqlite3.connect(self.db_path)
+            # Use SQLCipher instead of SQLite
+            self.connection = sqlcipher3.connect(str(self.db_path))
+            
+            # Set encryption key if provided
+            if self.encryption_key:
+                logging.debug("Setting encryption key for database")
+                self.connection.execute(f"PRAGMA key='{self.encryption_key}'")
+            else:
+                # If no key provided, set up encryption interactively
+                from budgy.core.security import SecurityManager
+                security = SecurityManager()
+                key, salt = security.setup_encryption(self.db_path)
+                self.connection.execute(f"PRAGMA key='{key}'")
+                self.encryption_key = key
+                logging.info("Database encryption setup complete")
+            
+            # Verify encryption is working by testing a simple query
+            try:
+                self.connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+                logging.debug("Database encryption verification successful")
+            except Exception as e:
+                raise RuntimeError(f"Database encryption failed - wrong password or corrupted database: {e}")
+        
         self._create_txn_table_if_missing()
         self._create_category_table_if_missing()
         self._create_rules_table_if_missing()
